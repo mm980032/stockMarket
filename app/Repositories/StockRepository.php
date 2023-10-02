@@ -21,7 +21,7 @@ class StockRepository extends BaseRepository
     }
 
     // 基礎股票資訊
-    public function create(array $payload){
-        $this->model->upsert($payload, ['stockCode', 'name']);
+    public function updateBaseStockInfo(array $payload){
+        $this->model->upsert($payload, ['stockCode']);
     }
 }

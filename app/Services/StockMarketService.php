@@ -10,26 +10,26 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use PDO;
 use PDOException;
 
 class StockMarketService {
 
-    // private $stockAllDayUrl = 'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL';
     // private $stockAllDayUrl = 'https://mis.twse.com.tw/stock/api/getStockInfo.jsp?json=1&delay=0&ex_ch=';
-    // private $stockAllDayUrl = 'https://api.fugle.tw/marketdata/v1.0/stock/intraday/tickers?type=EQUITY&exchange=TWSE&isNormal=true';
-    // private $stockAllDayUrl = 'https://openapi.twse.com.tw/v1/exchangeReport/BWIBBU_ALL';
-    // tse_2356.tw
 
     private $headers = [
         'Content-Type: application/json',
+        // 'Content-Type: text/html;charset=UTF-8',
         // 'X-API-KEY: ZWFhNGRjY2YtYzA2ZS00M2VmLTk3N2MtNzE4MmI3YWYyZTJlIDViMWQ5NWE2LTMzN2QtNDk0Yy04YjdmLTkxMWQ4OTgzZTA3Zg=='
+        'X-API-KEY: YTZlYmM0NjktNDFkNy00ZTI4LTkyMmEtYTk2NDJlZGVhMWU4IDcxN2I4Y2ZmLWZiY2MtNGE1NC04MzU3LTFhYmMxNTA0YzlmOQ=='
     ];
 
     private $focusCode = ['2356', '2884', '00878'];
 
     private $stockAllDayUrl;
     private $stockBwibbuUrl;
+    private $fugleStockQuote;
     public function __construct(
         private LineBotService $botPush,
         private StockRepository $stockRepo,
@@ -38,6 +38,7 @@ class StockMarketService {
     ){
         $this->stockAllDayUrl =  config('stockUrl.STOCK_DAY_ALL');
         $this->stockBwibbuUrl =  config('stockUrl.BWIBBU_ALL');
+        $this->fugleStockQuote = config('stockUrl.FUGLE_QUOTE');
     }
 
     /**
@@ -59,7 +60,6 @@ class StockMarketService {
      */
     public function compareOpeningAndLowest()
     {
-
         $result = curl('post', $this->stockAllDayUrl, $this->headers);
         $data = collect(json_decode($result['content'])) ;
         $notifyMsg = [];
@@ -79,8 +79,8 @@ class StockMarketService {
         }
     }
 
-    private function fetchStockDataFromUrl(string $url): SupportCollection {
-        $result = curl('get', $url, $this->headers);
+    private function fetchStockDataFromUrl(string $url, string $method = 'GET'): SupportCollection {
+        $result = curl($method, $url, $this->headers);
         return collect(json_decode($result['content']));
     }
 
@@ -92,18 +92,19 @@ class StockMarketService {
      */
     public function getFocuseInfo() : JsonResponse
     {
-        $data = $this->fetchStockDataFromUrl($this->stockAllDayUrl);
-        foreach ($this->focusCode as $key => $value) {
-            $notie = $data->where('c', $value)->first();
+        $this->updateBaseStockInfo();
+
+        $focusCode = $this->focusStockRepo->selectAllData([['userID', 'testUserID']]);
+        foreach ($focusCode as $key => $item) {
             $msg[] = "【通知】"."\n".
             "日期：" . date('Y-m-d H:i:s') ."\n".
-            "個股名稱：". $notie->n. "(" . $notie->c .")"."\n".
-            "開盤價〖高於〗最低價格"."\n".
-            "〖開盤價格〗 $notie->o"."\n".
-            "〖現價價格〗 $notie->z"."\n".
-            "〖最低價格〗 $notie->l";
+            "個股名稱：". $item->name. "(" . $item->stockCode .")"."\n".
+            "〖開盤價格〗". $item->stockInfo->openingPrice."\n".
+            "〖最低價格〗". $item->stockInfo->lowestPrice;
         }
-        return response()->json($msg);
+        if(!empty($msg)){
+            return response()->json($this->botPush->sendNotification($msg));
+        }
     }
 
     /**
@@ -112,7 +113,7 @@ class StockMarketService {
      * @return void
      * @author ZhiYong
      */
-    public function createBaseStockInfo() : void {
+    public function updateBaseStockInfo() : void {
         $create = [];
         $allStock = $this->fetchStockDataFromUrl($this->stockAllDayUrl);
         $allStockRatio = $this->fetchStockDataFromUrl($this->stockBwibbuUrl);
@@ -130,7 +131,8 @@ class StockMarketService {
                 'pbratio'       => $allStockRatio->where('Code', $item->Code)->isNotEmpty() ? $allStockRatio->where('Code', $item->Code)->first()->PBratio : ''
             ];
         }
-        $this->stockRepo->create($create);
+        $this->stockRepo->updateBaseStockInfo($create);
+        $this->botPush->sendNotification(["目前時間:" . date('Y-m-d H:i:s') . "\n" ."已更新股票資訊，共：" . count($create)."筆"]);
     }
 
     /**
@@ -159,6 +161,49 @@ class StockMarketService {
             DB::rollBack();
             throw new Exception($e->getMessage());
         }
+    }
+
+    public function notifcationHit() : SupportCollection {
+
+        // $url = 'https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_0050.tw%7Ctse_2356.tw%7Ctse_2330.tw%7Ctse_2317.tw%7Ctse_1216.tw%7Cotc_6547.tw%7Cotc_6180.tw';
+        $url = 'https://api.fugle.tw/marketdata/v1.0/stock/intraday/quote/2884';
+        $allStock = $this->fetchStockDataFromUrl($url);
+        return $allStock;
+    }
+
+    /**
+     * 推薦購買
+     *
+     * @return void
+     * @author ZhiYong
+     */
+    public function recommendBuy() : void {
+        // 準備call api
+        $focus = $this->focusStockRepo->selectAllFocusStockByUserID('testUserID')->pluck('stockCode');
+        foreach ($focus as $key => $code) {
+            $url = sprintf($this->fugleStockQuote, $code);
+            $data = $this->fetchStockDataFromUrl($url);
+            $bids = array_column($data['bids'], 'price');
+            // 期望值 開盤家 +- 1%
+            $wantHightPrice = $data['openPrice'] + ($data['openPrice'] * 0.01);
+            $wantLostPrice = $data['openPrice'] - ($data['openPrice'] * 0.01);
+            // 以最後一筆交易價格判斷
+            if($wantLostPrice <= $data['lastPrice'] && $data['lastPrice'] <= $wantHightPrice){
+                $msg[] = "【推薦購買通知】"."\n".
+                "日期：" . date('Y-m-d H:i:s') ."\n".
+                "個股名稱：". $data['name']. "(" . $data['symbol'] .")"."\n".
+                "〖平均價格〗". $data['avgPrice']."\n".
+                "〖開盤價格〗". $data['openPrice']."\n".
+                "〖最低價格〗". $data['lowPrice']."\n".
+                "〖期望最高價格〗". $wantHightPrice."\n".
+                "〖期望最低價格〗". $wantLostPrice."\n".
+                "〖最佳五檔委買〗". implode(", ", $bids);
+            }
+        }
+        if(!empty($msg)){
+            $this->botPush->sendNotification($msg);
+        }
+
     }
 
     /**

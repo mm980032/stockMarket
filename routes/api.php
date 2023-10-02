@@ -21,12 +21,16 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // LineBot通知範例
-// Route::get('/line-bot/push',[StockMarketService::class, 'notifyStockMarketInfo']);
+Route::get('/line-bot/push',[StockMarketService::class, 'notifyStockMarketInfo']);
 
 // Route::get('/info',[StockMarketService::class, 'compareOpeningAndLowest']);
-// Route::get('/get/focuse',[StockMarketService::class, 'getFocuseInfo']);
+Route::get('/get/focuse',[StockMarketService::class, 'getFocuseInfo']);
 
 // 基礎股票資訊(intit)
 Route::get('/buildBaseStock',[StockController::class, 'buildBaseStock']);
-
+// 關注(收藏)
 Route::post('/focus',[StockController::class, 'createFocusStock']);
+// 提示收盤價
+Route::get('/focus/notify', [StockController::class, 'notifcationHit']);
+// 建議購買
+Route::get('/recommend/buy',[StockController::class, 'recommendBuy']);

@@ -24,7 +24,7 @@ class StockController extends BaseController
     public function buildBaseStock() : JsonResponse {
 
         try {
-            $this->service->createBaseStockInfo();
+            $this->service->updateBaseStockInfo();
             return $this->returnSuccessMsg();
         } catch (Exception $e) {
             return $this->returnErrorMsg('提示', $e->getMessage());
@@ -45,9 +45,43 @@ class StockController extends BaseController
             return $this->returnSuccessMsg();
         } catch (PDOException $e) {
             return $this->returnErrorMsg('提示', $e->getMessage());
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             return $this->returnErrorMsg('提示', $e->getMessage());
         }
+    }
+
+    /**
+     * 提示收盤價
+     *
+     * @return JsonResponse
+     * @author ZhiYong
+     */
+    public function notifcationHit() : JsonResponse {
+        try {
+            $data = $this->service->notifcationHit();
+            return $this->returnSuccessMsg($data);
+        } catch (PDOException $e) {
+            return $this->returnErrorMsg('提示', $e->getMessage());
+        } catch (Exception $e) {
+            return $this->returnErrorMsg('提示', $e->getMessage());
+        }
+    }
+
+    /**
+     * 推薦購買通知
+     *
+     * @return JsonResponse
+     * @author ZhiYong
+     */
+    public function recommendBuy() : JsonResponse {
+        try {
+            $this->service->recommendBuy();
+            return $this->returnSuccessMsg();
+        } catch (PDOException $e) {
+            return $this->returnErrorMsg('提示', $e->getMessage());
+        } catch (Exception $e) {
+            return $this->returnErrorMsg('提示', $e->getMessage());
+        }
+
     }
 }

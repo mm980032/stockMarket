@@ -27,6 +27,6 @@ class CompareStockMarket implements ShouldQueue
      */
     public function handle(): void
     {
-        app()->make(StockMarketService::class)->getStockMarkInfo();
+        app(StockMarketService::class)->updateBaseStockInfo();
     }
 }

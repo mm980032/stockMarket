@@ -13,10 +13,17 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        // php artisan schedule:work
         $schedule->call(function () {
             $service = app()->make(StockMarketService::class);
-            $service->compareOpeningAndLowest();
-        })->dailyAt('09:00')->everyMinute(); // 請替換為您希望的時間
+            $service->updateBaseStockInfo();
+        })->dailyAt('14:00')->weekdays(); // 請替換為您希望的時間
+
+        // 推薦購買排成
+        $schedule->call(function () {
+            $service = app()->make(StockMarketService::class);
+            $service->recommendBuy();
+        })->everyFiveMinutes()->between('9:00', '13:30')->weekdays(); // 請替換為您希望的時間
     }
 
     /**

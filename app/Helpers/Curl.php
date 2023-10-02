@@ -14,7 +14,7 @@
         $ch = curl_init();
         curl_setopt($ch , CURLOPT_URL , $curlUrl);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data) );
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true );
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 19913);
         switch($method){
             case 'GET':
