@@ -9,7 +9,7 @@
      * @return array
      * @author ZhiYong
      */
-    function curl(string $method, string $curlUrl, array $headers = [], array $data = []) : array
+    function curl(string $method, string $curlUrl, array $headers = [], string|array $data = null) : array
     {
         $ch = curl_init();
         curl_setopt($ch , CURLOPT_URL , $curlUrl);
@@ -22,11 +22,11 @@
             case 'POST':
                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
                 curl_setopt($ch, CURLOPT_POST         , true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data) );
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
                 break;
             case 'PUT':
                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data) );
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data );
                 break;
             case 'DELETE':
                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);

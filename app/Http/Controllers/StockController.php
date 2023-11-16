@@ -16,22 +16,6 @@ class StockController extends BaseController
     ){}
 
     /**
-     * 基礎資訊建制
-     *
-     * @return JsonResponse
-     * @author ZhiYong
-     */
-    public function buildBaseStock() : JsonResponse {
-
-        try {
-            $this->service->updateBaseStockInfo();
-            return $this->returnSuccessMsg();
-        } catch (Exception $e) {
-            return $this->returnErrorMsg('提示', $e->getMessage());
-        }
-    }
-
-    /**
      * 建立關注股票
      *
      * @param Request $request
@@ -43,23 +27,6 @@ class StockController extends BaseController
         try {
             $this->service->createFocusStock($post);
             return $this->returnSuccessMsg();
-        } catch (PDOException $e) {
-            return $this->returnErrorMsg('提示', $e->getMessage());
-        } catch (Exception $e) {
-            return $this->returnErrorMsg('提示', $e->getMessage());
-        }
-    }
-
-    /**
-     * 提示收盤價
-     *
-     * @return JsonResponse
-     * @author ZhiYong
-     */
-    public function notifcationHit() : JsonResponse {
-        try {
-            $data = $this->service->notifcationHit();
-            return $this->returnSuccessMsg($data);
         } catch (PDOException $e) {
             return $this->returnErrorMsg('提示', $e->getMessage());
         } catch (Exception $e) {
@@ -82,6 +49,5 @@ class StockController extends BaseController
         } catch (Exception $e) {
             return $this->returnErrorMsg('提示', $e->getMessage());
         }
-
     }
 }

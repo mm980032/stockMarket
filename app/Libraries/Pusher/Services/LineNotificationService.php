@@ -5,7 +5,16 @@ use Illuminate\Support\Facades\Http;
 
 class LineNotificationService{
 
-    private $lineNotifyToken = 'gdAkw54Tcd2Kl6urviW1tZLsjOGtX59yF9vcWfwmTEy';
+    private $token = [
+        // 股票推薦購買
+        'remmo' => 'rFSGUIAMKMdgYISFMe9f7tedSxw17L4jIaIaiQj8rwn',
+        // 關注股票詳細資訊
+        'detail' => 'gQqc8j6HHWEeQvBfuDkah78LLrcTuRex5EMjRW8VPKG',
+        // 自己報價通知
+        'own' => 'W435cdeeB0VCErIoXQwV5EEFxbXy7cMcsXmiZC6HALJ',
+    ];
+    private $curlUrl = 'https://notify-api.line.me/api/notify';
+
 
     /**
      * 發送訊息
@@ -14,21 +23,20 @@ class LineNotificationService{
      * @return void
      * @author ZhiYong
      */
-    public function sendNotification(string $msg) : void
+    public function sendNotification(string $msg, string $type = 'remmo') : string
     {
         $headers = array(
             'Content-Type: multipart/form-data',
-            'Authorization: Bearer ' . $this->lineNotifyToken
+            'Authorization: Bearer ' . $this->token[$type]
         );
-        $message = array(
+        $data = [
             'message' => $msg
-        );
-        $ch = curl_init();
-        curl_setopt($ch , CURLOPT_URL , "https://notify-api.line.me/api/notify");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $message);
-        $result = curl_exec($ch);
-        curl_close($ch);
+        ];
+
+        $result = curl('POST', $this->curlUrl, $headers, $data);
+        if($result['httpCode'] != 200){
+            return json_decode($result['content'])->message;
+        }
+        return 'ok!';
     }
 }

@@ -71,5 +71,17 @@ trait HasCRUD{
     public function deleteDataByColumn(string $column, array $id) : void {
         $this->model->whereIn($column, $id)->delete();
     }
+
+    /**
+     * 範圍取得資訊
+     *
+     * @param array $codes
+     * @return Collection
+     * @author ZhiYong
+     */
+    public function selectStockByRangeCode(array $codes) : Collection {
+        return $this->model->whereIn('stockCode', $codes);
+
+    }
 }
 

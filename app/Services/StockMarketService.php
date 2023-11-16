@@ -1,7 +1,10 @@
 <?php
 namespace App\Services;
 
+use App\Libraries\Dividend\Services\DividendService;
+use App\Libraries\Dividend\Services\FinMindDividendService;
 use App\Libraries\Pusher\Services\LineBotService;
+use App\Libraries\Pusher\Services\LineNotificationService;
 use App\Repositories\FocusStockRepository;
 use App\Repositories\StockRepository;
 use App\Repositories\UserRepository;
@@ -16,13 +19,14 @@ use PDOException;
 
 class StockMarketService {
 
-    // private $stockAllDayUrl = 'https://mis.twse.com.tw/stock/api/getStockInfo.jsp?json=1&delay=0&ex_ch=';
 
+    // private $headers = [
+    //     'Content-Type: application/json',
+    //     'X-API-KEY: YjdmZTY4OTAtNTAzYS00ZGRhLTg4MjctNjFhMzk2YjE1ZWQxIDg5YzY5ZGM1LTdjYTQtNDlkMS1hMTA5LTdkNTViNDEwNjFiMQ=='
+    // ];
     private $headers = [
-        'Content-Type: application/json',
-        // 'Content-Type: text/html;charset=UTF-8',
-        // 'X-API-KEY: ZWFhNGRjY2YtYzA2ZS00M2VmLTk3N2MtNzE4MmI3YWYyZTJlIDViMWQ5NWE2LTMzN2QtNDk0Yy04YjdmLTkxMWQ4OTgzZTA3Zg=='
-        'X-API-KEY: YTZlYmM0NjktNDFkNy00ZTI4LTkyMmEtYTk2NDJlZGVhMWU4IDcxN2I4Y2ZmLWZiY2MtNGE1NC04MzU3LTFhYmMxNTA0YzlmOQ=='
+        'Content-Type' => 'application/json',
+        'X-API-KEY' => 'YjdmZTY4OTAtNTAzYS00ZGRhLTg4MjctNjFhMzk2YjE1ZWQxIDg5YzY5ZGM1LTdjYTQtNDlkMS1hMTA5LTdkNTViNDEwNjFiMQ=='
     ];
 
     private $focusCode = ['2356', '2884', '00878'];
@@ -32,9 +36,12 @@ class StockMarketService {
     private $fugleStockQuote;
     public function __construct(
         private LineBotService $botPush,
+        private LineNotificationService $lineNotify,
         private StockRepository $stockRepo,
         private FocusStockRepository $focusStockRepo,
-        private UserRepository $userRepo
+        private UserRepository $userRepo,
+        // private DividendService $dividendServ
+        private FinMindDividendService $finMindDividendServ
     ){
         $this->stockAllDayUrl =  config('stockUrl.STOCK_DAY_ALL');
         $this->stockBwibbuUrl =  config('stockUrl.BWIBBU_ALL');
@@ -49,7 +56,8 @@ class StockMarketService {
      */
     public function notifyStockMarketInfo() : JsonResponse
     {
-        return response()->json($this->botPush->sendNotification(['laravel Test!']));
+        // return response()->json($this->botPush->sendNotification(['laravel Test!']));
+        return response()->json($this->lineNotify->sendNotification('laravel Test!'));
     }
 
     /**
@@ -79,60 +87,51 @@ class StockMarketService {
         }
     }
 
-    private function fetchStockDataFromUrl(string $url, string $method = 'GET'): SupportCollection {
-        $result = curl($method, $url, $this->headers);
-        return collect(json_decode($result['content']));
+    /**
+     * 呼叫url api
+     *
+     * @param string $url
+     * @param string $method
+     * @return SupportCollection
+     * @author ZhiYong
+     */
+    private function fetchStockDataFromUrl(string $url, string $method = 'GET', array $data = []): SupportCollection {
+        switch ($method) {
+            case 'GET':
+                $data = Http::withHeaders($this->headers)->get($url)->json();
+                break;
+            case 'POST':
+                $data = Http::withHeaders($this->headers)->post($url, $data)->json();
+            default:
+                throw new Exception('curl type error!');
+        }
+        return collect($data);
     }
 
     /**
      * 取得關注股票資訊
      *
-     * @return JsonResponse
-     * @author ZhiYong
-     */
-    public function getFocuseInfo() : JsonResponse
-    {
-        $this->updateBaseStockInfo();
-
-        $focusCode = $this->focusStockRepo->selectAllData([['userID', 'testUserID']]);
-        foreach ($focusCode as $key => $item) {
-            $msg[] = "【通知】"."\n".
-            "日期：" . date('Y-m-d H:i:s') ."\n".
-            "個股名稱：". $item->name. "(" . $item->stockCode .")"."\n".
-            "〖開盤價格〗". $item->stockInfo->openingPrice."\n".
-            "〖最低價格〗". $item->stockInfo->lowestPrice;
-        }
-        if(!empty($msg)){
-            return response()->json($this->botPush->sendNotification($msg));
-        }
-    }
-
-    /**
-     * 基礎資料建置
-     *
      * @return void
      * @author ZhiYong
      */
-    public function updateBaseStockInfo() : void {
-        $create = [];
-        $allStock = $this->fetchStockDataFromUrl($this->stockAllDayUrl);
-        $allStockRatio = $this->fetchStockDataFromUrl($this->stockBwibbuUrl);
-        foreach ($allStock as $key => $item) {
-            $create[] = [
-                'stockCode'     => $item->Code,
-                'name'          => $item->Name,
-                'openingPrice'  => $item->OpeningPrice,
-                'highestPrice'  => $item->HighestPrice,
-                'lowestPrice'   => $item->LowestPrice,
-                'closingPrice'  => $item->ClosingPrice,
-                'change'        => $item->Change,
-                'peratio'       => $allStockRatio->where('Code', $item->Code)->isNotEmpty() ? $allStockRatio->where('Code', $item->Code)->first()->PEratio : '',
-                'DividendYield' => $allStockRatio->where('Code', $item->Code)->isNotEmpty() ? $allStockRatio->where('Code', $item->Code)->first()->DividendYield : '',
-                'pbratio'       => $allStockRatio->where('Code', $item->Code)->isNotEmpty() ? $allStockRatio->where('Code', $item->Code)->first()->PBratio : ''
-            ];
+    public function getFocuseInfo() : void
+    {
+        $msg[] = "【通知】";
+        $focusCode = $this->focusStockRepo->selectAllData([['userID', 'testUserID']]);
+        foreach ($focusCode as $key => $each) {
+            $url = sprintf($this->fugleStockQuote, $each['stockCode']);
+            // call URL API
+            $data = $this->fetchStockDataFromUrl($url);
+            $msg[] = "日期：" . date('Y-m-d H:i:s') ."\n".
+                "個股名稱：". $data['name']. "(" . $data['symbol'] .")"."\n".
+                "〖平均價格〗". $data['avgPrice']."\n".
+                "〖開盤價格〗". $data['openPrice']."\n".
+                "〖最低價格〗". $data['lowPrice'];
         }
-        $this->stockRepo->updateBaseStockInfo($create);
-        $this->botPush->sendNotification(["目前時間:" . date('Y-m-d H:i:s') . "\n" ."已更新股票資訊，共：" . count($create)."筆"]);
+        $msg = implode("\n\n", $msg);
+        if(!empty($msg)){
+            $this->lineNotify->sendNotification($msg, 'detail');
+        }
     }
 
     /**
@@ -163,14 +162,6 @@ class StockMarketService {
         }
     }
 
-    public function notifcationHit() : SupportCollection {
-
-        // $url = 'https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_0050.tw%7Ctse_2356.tw%7Ctse_2330.tw%7Ctse_2317.tw%7Ctse_1216.tw%7Cotc_6547.tw%7Cotc_6180.tw';
-        $url = 'https://api.fugle.tw/marketdata/v1.0/stock/intraday/quote/2884';
-        $allStock = $this->fetchStockDataFromUrl($url);
-        return $allStock;
-    }
-
     /**
      * 推薦購買
      *
@@ -178,32 +169,50 @@ class StockMarketService {
      * @author ZhiYong
      */
     public function recommendBuy() : void {
-        // 準備call api
-        $focus = $this->focusStockRepo->selectAllFocusStockByUserID('testUserID')->pluck('stockCode');
-        foreach ($focus as $key => $code) {
+        // 關注股票
+        $focus = $this->focusStockRepo->selectAllFocusStockByUserID('testUserID');
+        // 取得所有股票代碼
+        $focuCodes = $focus->pluck('stockCode');
+        // 訊息組合
+        $msg[0] = "當前判斷設定： 殖利率為3%以上 且 開盤價+-0.05%"."\n".
+        "掃描股票範圍:";
+        foreach ($focus as $key => $item) {
+            $msg[0] .= $item['name'] . '(' .$item['stockCode'] . '), ';
+        }
+
+        // 推薦購買邏輯(關注股票)
+        foreach ($focuCodes as $key => $code) {
             $url = sprintf($this->fugleStockQuote, $code);
+            // call URL API
             $data = $this->fetchStockDataFromUrl($url);
+            // 最佳五檔委買價
             $bids = array_column($data['bids'], 'price');
-            // 期望值 開盤家 +- 1%
-            $wantHightPrice = $data['openPrice'] + ($data['openPrice'] * 0.01);
-            $wantLostPrice = $data['openPrice'] - ($data['openPrice'] * 0.01);
-            // 以最後一筆交易價格判斷
-            if($wantLostPrice <= $data['lastPrice'] && $data['lastPrice'] <= $wantHightPrice){
-                $msg[] = "【推薦購買通知】"."\n".
+            // 取得殖利率
+            $dividendYield = $this->getDividendYieldByFinMind($data);
+            // 購買期望價格
+            [$expectHightPrice, $expectLostPrice] = $this->getExpectPrice($data['openPrice'], 0.005);
+            if($dividendYield >= 3 && ($expectLostPrice <= $data['lastPrice'] && $data['lastPrice'] <= $expectHightPrice)){
+                $msg[] = "\n"."【推薦購買通知】" ."\n".
                 "日期：" . date('Y-m-d H:i:s') ."\n".
-                "個股名稱：". $data['name']. "(" . $data['symbol'] .")"."\n".
+                "個股名稱：". $data['name']. "(" . $data['symbol'] .")" . "\n".
+                "〖殖利率〗". "(" .number_format($dividendYield, 2) . "%)" ."\n".
                 "〖平均價格〗". $data['avgPrice']."\n".
                 "〖開盤價格〗". $data['openPrice']."\n".
                 "〖最低價格〗". $data['lowPrice']."\n".
-                "〖期望最高價格〗". $wantHightPrice."\n".
-                "〖期望最低價格〗". $wantLostPrice."\n".
+                "〖期望最高價格〗". $expectHightPrice."\n".
+                "〖期望最低價格〗". $expectLostPrice."\n".
+                "〖最後一筆購買價格〗". $data['lastPrice']."\n".
                 "〖最佳五檔委買〗". implode(", ", $bids);
             }
-        }
-        if(!empty($msg)){
-            $this->botPush->sendNotification($msg);
-        }
 
+        }
+        if(!empty($msg[1])){
+            // 停用
+            // $this->botPush->sendNotification($msg);
+            foreach ($msg as $key => $item) {
+                $this->lineNotify->sendNotification($item, 'remmo');
+            }
+        }
     }
 
     /**
@@ -246,6 +255,66 @@ class StockMarketService {
         $deleteStockCodes = $focus->pluck('stockCode')->diff($post['stockCode']);
         if(!empty($deleteStockCodes)){
             $this->focusStockRepo->deleteDataByColumn('stockCode', $deleteStockCodes->toArray());
+        }
+    }
+
+    /**
+     * 取得高低期望值
+     *
+     * @param string $openPrice
+     * @param float $ratio
+     * @return array
+     * @author ZhiYong
+     */
+    public function getExpectPrice(string $openPrice, float $ratio) : array {
+        $hightPrice = $openPrice + ($openPrice * $ratio);
+        $lostPrice = $openPrice - ($openPrice * $ratio);
+
+        return [$hightPrice, $lostPrice];
+    }
+
+    /**
+     * 取得殖利率
+     *
+     * @param \Illuminate\Support\Collection $data
+     * @return float
+     * @author ZhiYong
+     */
+    public function getDividendYieldByFinMind(\Illuminate\Support\Collection $data) : float{
+        $dividends = $this->finMindDividendServ->getDividend($data['symbol']);
+        if ($dividends['status'] == 200) {
+            $dividends = $dividends['data'];
+        }
+
+        // 所有股利
+        $all_dividend = array_column($dividends, 'CashEarningsDistribution');
+        // 平均股利
+        $avg_dividend = array_sum($all_dividend)/ count($dividends);
+        // 殖利率 => 股利/股價
+        $dividendYield = ($avg_dividend / $data['lastPrice']) * 100;
+        return $dividendYield;
+
+    }
+
+    public function ownStockPricePush(){
+        $msg = [];
+        // 關注股票
+        $focus = $this->focusStockRepo->selectAllFocusStockByUserID('own');
+        // 取得所有股票代碼
+        $focuCodes = $focus->pluck('stockCode');
+        // 推薦購買邏輯(關注股票)
+        foreach ($focuCodes as $key => $code) {
+            $url = sprintf($this->fugleStockQuote, $code);
+            // call URL API
+            $data = $this->fetchStockDataFromUrl($url);
+            $msg[] = "日期：" . date('Y-m-d H:i:s') ."\n".
+            "個股名稱：". $data['name']. "(" . $data['symbol'] .")"."\n".
+            "〖當前股價〗". $data['lastPrice']. "(" . $data['lastPrice'] - $data['openPrice']   .")" ."\n";
+        }
+        if(!empty($msg)){
+            foreach ($msg as $key => $item) {
+                $this->lineNotify->sendNotification($item, 'own');
+            }
         }
     }
 }

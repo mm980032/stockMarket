@@ -30,7 +30,7 @@ class LineBotService{
                 "text" => $value
             ];
         }
-        $result = curl('POST', $this->curlUrl, $headers, $message);
+        $result = curl('POST', $this->curlUrl, $headers, json_encode($message));
         if($result['httpCode'] != 200){
             return json_decode($result['content'])->message;
         }
