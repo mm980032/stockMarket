@@ -170,7 +170,7 @@ class StockMarketService {
      */
     public function recommendBuy() : void {
         // 關注股票
-        $focus = $this->focusStockRepo->selectAllFocusStockByUserID('testUserID');
+        $focus = $this->focusStockRepo->selectAllFocusStockByUserID('remmo');
         // 取得所有股票代碼
         $focuCodes = $focus->pluck('stockCode');
         // 訊息組合
@@ -309,7 +309,7 @@ class StockMarketService {
             $data = $this->fetchStockDataFromUrl($url);
             $msg[] = "日期：" . date('Y-m-d H:i:s') ."\n".
             "個股名稱：". $data['name']. "(" . $data['symbol'] .")"."\n".
-            "〖當前股價〗". $data['lastPrice']. "(" . $data['lastPrice'] - $data['openPrice']   .")" ."\n";
+            "〖當前股價〗". $data['lastPrice']. "\n". $data['change'] ." (" . $data['changePercent'] .") " ."\n";
         }
         if(!empty($msg)){
             foreach ($msg as $key => $item) {

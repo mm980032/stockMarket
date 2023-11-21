@@ -5,7 +5,7 @@
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '6d6ac7d2fe4cb842d06a64530fd939f387c5784c',
+        'reference' => '9c16162b91861a8e9fc5732aaecc9f6bda125bb9',
         'name' => 'laravel/laravel',
         'dev' => true,
     ),
@@ -403,7 +403,7 @@
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '6d6ac7d2fe4cb842d06a64530fd939f387c5784c',
+            'reference' => '9c16162b91861a8e9fc5732aaecc9f6bda125bb9',
             'dev_requirement' => false,
         ),
         'laravel/pint' => array(
@@ -617,6 +617,15 @@
             'install_path' => __DIR__ . '/../nunomaduro/termwind',
             'aliases' => array(),
             'reference' => '8ab0b32c8caa4a2e09700ea32925441385e4a5dc',
+            'dev_requirement' => false,
+        ),
+        'nwidart/laravel-modules' => array(
+            'pretty_version' => '10.0.4',
+            'version' => '10.0.4.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../nwidart/laravel-modules',
+            'aliases' => array(),
+            'reference' => '5a75f90d7d0d2689f1fb08c766f23fd3ee76769e',
             'dev_requirement' => false,
         ),
         'phar-io/manifest' => array(
