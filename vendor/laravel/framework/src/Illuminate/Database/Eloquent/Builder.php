@@ -97,29 +97,29 @@ class Builder implements BuilderContract
         'avg',
         'count',
         'dd',
-        'ddRawSql',
-        'doesntExist',
-        'doesntExistOr',
+        'ddrawsql',
+        'doesntexist',
+        'doesntexistor',
         'dump',
-        'dumpRawSql',
+        'dumprawsql',
         'exists',
-        'existsOr',
+        'existsor',
         'explain',
-        'getBindings',
-        'getConnection',
-        'getGrammar',
+        'getbindings',
+        'getconnection',
+        'getgrammar',
         'implode',
         'insert',
-        'insertGetId',
-        'insertOrIgnore',
-        'insertUsing',
+        'insertgetid',
+        'insertorignore',
+        'insertusing',
         'max',
         'min',
         'raw',
-        'rawValue',
+        'rawvalue',
         'sum',
-        'toSql',
-        'toRawSql',
+        'tosql',
+        'torawsql',
     ];
 
     /**
@@ -563,7 +563,7 @@ class Builder implements BuilderContract
      */
     public function firstOrCreate(array $attributes = [], array $values = [])
     {
-        if (! is_null($instance = $this->where($attributes)->first())) {
+        if (! is_null($instance = (clone $this)->where($attributes)->first())) {
             return $instance;
         }
 
@@ -580,9 +580,9 @@ class Builder implements BuilderContract
     public function createOrFirst(array $attributes = [], array $values = [])
     {
         try {
-            return $this->create(array_merge($attributes, $values));
-        } catch (UniqueConstraintViolationException $exception) {
-            return $this->where($attributes)->first();
+            return $this->withSavepointIfNeeded(fn () => $this->create(array_merge($attributes, $values)));
+        } catch (UniqueConstraintViolationException $e) {
+            return $this->useWritePdo()->where($attributes)->first() ?? throw $e;
         }
     }
 
@@ -595,8 +595,10 @@ class Builder implements BuilderContract
      */
     public function updateOrCreate(array $attributes, array $values = [])
     {
-        return tap($this->firstOrNew($attributes), function ($instance) use ($values) {
-            $instance->fill($values)->save();
+        return tap($this->firstOrCreate($attributes, $values), function ($instance) use ($values) {
+            if (! $instance->wasRecentlyCreated) {
+                $instance->fill($values)->save();
+            }
         });
     }
 
@@ -1164,7 +1166,7 @@ class Builder implements BuilderContract
             ) {
                 $timestamp = $this->model->newInstance()
                     ->forceFill([$column => $timestamp])
-                    ->getAttributes()[$column];
+                    ->getAttributes()[$column] ?? $timestamp;
             }
 
             $values = array_merge([$column => $timestamp], $values);
@@ -1710,6 +1712,21 @@ class Builder implements BuilderContract
     }
 
     /**
+     * Execute the given Closure within a transaction savepoint if needed.
+     *
+     * @template TModelValue
+     *
+     * @param  \Closure(): TModelValue  $scope
+     * @return TModelValue
+     */
+    public function withSavepointIfNeeded(Closure $scope): mixed
+    {
+        return $this->getQuery()->getConnection()->transactionLevel() > 0
+            ? $this->getQuery()->getConnection()->transaction($scope)
+            : $scope();
+    }
+
+    /**
      * Get the underlying query builder instance.
      *
      * @return \Illuminate\Database\Query\Builder
@@ -1947,7 +1964,7 @@ class Builder implements BuilderContract
             return $this->callNamedScope($method, $parameters);
         }
 
-        if (in_array($method, $this->passthru)) {
+        if (in_array(strtolower($method), $this->passthru)) {
             return $this->toBase()->{$method}(...$parameters);
         }
 
