@@ -31,6 +31,9 @@ Route::post('/focus',[StockController::class, 'createFocusStock']);
 // 建議購買
 Route::get('/recommend/buy',[StockController::class, 'recommendBuy']);
 
+// 基礎資料建置
+Route::get('buildBase', [StockController::class, 'buildBase']);
+
 
 Route::prefix('/finMind/stock')->group(function () {
     Route::get('',[FinMindController::class, 'info']);

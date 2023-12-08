@@ -3,6 +3,8 @@ namespace App\Services;
 
 use App\Libraries\Dividend\Services\DividendService;
 use App\Libraries\Dividend\Services\FinMindDividendService;
+use App\Libraries\Dividend\Services\FinMinService;
+use App\Libraries\FinMindLibrary;
 use App\Libraries\Pusher\Services\LineBotService;
 use App\Libraries\Pusher\Services\LineNotificationService;
 use App\Repositories\FocusStockRepository;
@@ -41,7 +43,8 @@ class StockMarketService {
         private FocusStockRepository $focusStockRepo,
         private UserRepository $userRepo,
         // private DividendService $dividendServ
-        private FinMindDividendService $finMindDividendServ
+        private FinMindDividendService $finMindDividendServ,
+        private FinMindLibrary $finMindLibrary,
     ){
         $this->stockAllDayUrl =  config('stockUrl.STOCK_DAY_ALL');
         $this->stockBwibbuUrl =  config('stockUrl.BWIBBU_ALL');
@@ -152,7 +155,7 @@ class StockMarketService {
                 }
             );
             // 當前關注資訊
-            $focus = $this->focusStockRepo->selectAllData([['userID', $post['userID']]]);
+            $focus = $this->focusStockRepo->selectAllData([['method', $post['method']]]);
             $this->createFocus($focus, $stocks, $post);
             $this->deleteFocus($focus, $post);
             DB::commit();
@@ -168,9 +171,9 @@ class StockMarketService {
      * @return void
      * @author ZhiYong
      */
-    public function recommendBuy() : void {
+    public function recommendBuy($method = 'remmo') : void {
         // 關注股票
-        $focus = $this->focusStockRepo->selectAllFocusStockByUserID('remmo');
+        $focus = $this->focusStockRepo->selectAllFocusStockByUserID($method);
         // 取得所有股票代碼
         $focuCodes = $focus->pluck('stockCode');
         // 訊息組合
@@ -185,32 +188,28 @@ class StockMarketService {
             $url = sprintf($this->fugleStockQuote, $code);
             // call URL API
             $data = $this->fetchStockDataFromUrl($url);
-            // 最佳五檔委買價
-            $bids = array_column($data['bids'], 'price');
             // 取得殖利率
             $dividendYield = $this->getDividendYieldByFinMind($data);
             // 購買期望價格
             [$expectHightPrice, $expectLostPrice] = $this->getExpectPrice($data['openPrice'], 0.005);
             if($dividendYield >= 3 && ($expectLostPrice <= $data['lastPrice'] && $data['lastPrice'] <= $expectHightPrice)){
-                $msg[] = "\n"."【推薦購買通知】" ."\n".
-                "日期：" . date('Y-m-d H:i:s') ."\n".
-                "個股名稱：". $data['name']. "(" . $data['symbol'] .")" . "\n".
+                $msg[] = "〖日期〗" . date('Y-m-d H:i:s') ."\n".
+                "〖個股名稱〗". $data['name']. "(" . $data['symbol'] .")" . "\n".
                 "〖殖利率〗". "(" .number_format($dividendYield, 2) . "%)" ."\n".
-                "〖平均價格〗". $data['avgPrice']."\n".
                 "〖開盤價格〗". $data['openPrice']."\n".
-                "〖最低價格〗". $data['lowPrice']."\n".
+                "〖當前價格〗". $data['lastPrice'] . '('. $data['change'] .')'."\n".
                 "〖期望最高價格〗". $expectHightPrice."\n".
                 "〖期望最低價格〗". $expectLostPrice."\n".
-                "〖最後一筆購買價格〗". $data['lastPrice']."\n".
-                "〖最佳五檔委買〗". implode(", ", $bids);
+                "〖最高價格〗". $data['highPrice']. '('. $data['highTime'] .')'."\n".
+                "〖最低價格〗". $data['lowPrice']. '('. $data['lowTime'] .')'."\n";
             }
 
         }
-        if(!empty($msg[1])){
+        if(!empty($msg[0])){
             // 停用
             // $this->botPush->sendNotification($msg);
             foreach ($msg as $key => $item) {
-                $this->lineNotify->sendNotification($item, 'remmo');
+                $this->lineNotify->sendNotification($item, $method);
             }
         }
     }
@@ -232,7 +231,7 @@ class StockMarketService {
             $info = $stocks->where('stockCode', $itme)->first();
             $create[] = [
                 'focusID'       => $this->focusStockRepo->createUniqueID(),
-                'userID'        => $post['userID'],
+                'method'        => $post['method'],
                 'stockCode'     => $info->stockCode,
                 'name'          => $info->name,
             ];
@@ -252,9 +251,12 @@ class StockMarketService {
      */
     private function deleteFocus(Collection $focus, array $post) : void {
         // 刪除關注內容
-        $deleteStockCodes = $focus->pluck('stockCode')->diff($post['stockCode']);
-        if(!empty($deleteStockCodes)){
-            $this->focusStockRepo->deleteDataByColumn('stockCode', $deleteStockCodes->toArray());
+        $delete = $focus->filter(function ($item) use ($post) {
+            return !in_array($item['stockCode'], $post['stockCode']);
+        });
+        $delete = $delete->pluck('focusID')->toArray();
+        if(!empty($delete)){
+            $this->focusStockRepo->deleteDataByColumn('focusID', $delete);
         }
     }
 
@@ -309,12 +311,33 @@ class StockMarketService {
             $data = $this->fetchStockDataFromUrl($url);
             $msg[] = "日期：" . date('Y-m-d H:i:s') ."\n".
             "個股名稱：". $data['name']. "(" . $data['symbol'] .")"."\n".
-            "〖當前股價〗". $data['lastPrice']. "\n". $data['change'] ." (" . $data['changePercent'] .") " ."\n";
+            "〖當前股價〗". $data['lastPrice']. "\n". $data['change'] ." (" . $data['changePercent'] ."%) " ."\n";
         }
         if(!empty($msg)){
             foreach ($msg as $key => $item) {
                 $this->lineNotify->sendNotification($item, 'own');
             }
         }
+    }
+
+    /**
+     * 建制股票資訊
+     *
+     * @return void
+     * @author ZhiYong
+     */
+    public function buildBase(){
+        $search = $this->finMindLibrary->getStocks();
+        $insert = [];
+        if($search['status'] == 200){
+            foreach ($search['data'] as $key => $item) {
+                $insert[] = [
+                    'category'  => $item['industry_category'],
+                    'stockCode' => $item['stock_id'],
+                    'name'      => $item['stock_name']
+                ];
+            }
+        }
+        $this->stockRepo->updateBaseStockInfo($insert);
     }
 }

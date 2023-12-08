@@ -50,4 +50,21 @@ class StockController extends BaseController
             return $this->returnErrorMsg('提示', $e->getMessage());
         }
     }
+
+    /**
+     * 建制股票基本資訊
+     *
+     * @return JsonResponse
+     * @author ZhiYong
+     */
+    public function buildBase() : JsonResponse{
+        try {
+            $this->service->buildBase();
+            return $this->returnSuccessMsg();
+        } catch (PDOException $e) {
+            return $this->returnErrorMsg('提示', $e->getMessage());
+        } catch (Exception $e) {
+            return $this->returnErrorMsg('提示', $e->getMessage());
+        }
+    }
 }

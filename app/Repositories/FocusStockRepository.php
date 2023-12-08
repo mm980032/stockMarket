@@ -36,7 +36,7 @@ class FocusStockRepository extends BaseRepository
     public function selectAllFocusStockByUserID(string $userID) : Collection
     {
         return $this->model
-            ->where('remmo', $userID)
+            ->where('method', $userID)
             ->get();
     }
 }

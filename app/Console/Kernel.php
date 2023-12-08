@@ -20,10 +20,10 @@ class Kernel extends ConsoleKernel
         // })->dailyAt('14:00')->weekdays(); // 請替換為您希望的時間
 
         // 推薦購買排程
-        $schedule->call(function () {
-            $service = app()->make(StockMarketService::class);
-            $service->recommendBuy();
-        })->hourly()->between('9:00', '13:30')->weekdays(); // 請替換為您希望的時間
+        // $schedule->call(function () {
+        //     $service = app()->make(StockMarketService::class);
+        //     $service->recommendBuy();
+        // })->hourly()->between('9:00', '13:30')->weekdays(); // 請替換為您希望的時間
 
         // 關注價格
         $schedule->call(function () {

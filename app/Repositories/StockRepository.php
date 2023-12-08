@@ -20,7 +20,7 @@ class StockRepository extends BaseRepository
         return 'id';
     }
 
-    // 基礎股票資訊
+    // 新增或編輯股票資訊
     public function updateBaseStockInfo(array $payload){
         $this->model->upsert($payload, ['stockCode']);
     }
