@@ -1,3 +1,5 @@
 {
-    "LineNotify": true
+    "LineNotify": true,
+    "Commands": true,
+    "Stock": true
 }
