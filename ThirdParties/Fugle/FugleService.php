@@ -19,9 +19,9 @@ class FugleService {
      * @author ZhiYong
      */
     public function getStockQuoteDeatil(string $stockCode) : array{
-        $fugle_Quote = config('stockUrl.FUGLE_QUOTE');
-        $url = sprintf($fugle_Quote, $stockCode);
-        $data = Http::withHeaders($this->headers)->get($url)->json();
+        $url = 'intraday/quote/%s';
+        $fugle_Quote = sprintf(env('Fugle_API') . DIRECTORY_SEPARATOR . $url, $stockCode);
+        $data = Http::withHeaders($this->headers)->get($fugle_Quote)->json();
         return $data;
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Console;
 
-use App\Services\StockMarketService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Modules\Stock\Services\StockService;
 
 class Kernel extends ConsoleKernel
 {
@@ -27,8 +27,8 @@ class Kernel extends ConsoleKernel
 
         // 關注價格
         $schedule->call(function () {
-            $service = app()->make(StockMarketService::class);
-            $service->ownStockPricePush();
+            $service = app()->make(StockService::class);
+            $service->ownBuy();
         })->everyFiveMinutes()->between('9:00', '13:30')->weekdays(); // 請替換為您希望的時間
     }
 

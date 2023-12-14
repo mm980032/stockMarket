@@ -2,10 +2,10 @@
 
 namespace Modules\stock\Repositories;
 
-use App\Models\FocusStock;
 use App\Repositories\BaseRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Stock\app\Models\FocusStock;
 
 /**
  * Class StockRepository.

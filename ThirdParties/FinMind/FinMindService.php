@@ -5,8 +5,6 @@ use Illuminate\Support\Facades\Http;
 
 class FinMindService {
 
-    private $url = 'https://api.finmindtrade.com/api/v4/data';
-
     /**
      * 取得所有股票代碼名稱(台股)
      *
@@ -17,7 +15,7 @@ class FinMindService {
         $parameters = [
             "dataset" => "TaiwanStockInfo"
         ];
-        $response = Http::get($this->url, $parameters);
+        $response = Http::get(env('FIN_MINS_API'), $parameters);
         $data = $response->json();
         return $data;
     }
@@ -38,7 +36,7 @@ class FinMindService {
             "start_date" => $fiveYearsAgo
         ];
 
-        $response = Http::get($this->url, $parameters);
+        $response = Http::get(env('FIN_MINS_API'), $parameters);
         $response = $response->json();
 
         // 所有股利
