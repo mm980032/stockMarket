@@ -29,7 +29,7 @@ class StockController extends BaseController
             $this->service->buildStockBasedInformation();
             return $this->returnSuccessMsg();
         } catch (\Throwable $th) {
-            return $this->returnErrorMsg();
+            return $this->returnErrorMsg('失敗，原因：'. $th->getMessage());
         }
     }
 

@@ -1,5 +1,7 @@
 {
     "LineNotify": true,
     "Commands": true,
-    "Stock": true
+    "Stock": true,
+    "Login": true,
+    "User": true
 }
