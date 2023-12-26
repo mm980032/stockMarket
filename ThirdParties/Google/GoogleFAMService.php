@@ -28,6 +28,19 @@ class GoogleFAMService{
     }
 
     /**
+     * googleMFA驗證
+     *
+     * @param string $authCode
+     * @param string $mfa
+     * @return boolean
+     * @author ZhiYong
+     */
+    public function isValiMfa(string $authCode, string $mfa)
+    {
+        return $this->google2FA->verifyKey($authCode, $mfa);
+    }
+
+    /**
      * 轉為url
      *
      * @param string $qrCodeUrl

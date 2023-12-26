@@ -16,6 +16,10 @@ use Modules\Login\app\Http\Controllers\LoginController;
 */
 
 Route::controller(LoginController::class)->group(function(){
-    // 註冊
+    // 註冊帳號
     Route::post('/register', 'register');
+    // 登入
+    Route::post('/login', 'login');
+    // MFA驗證
+    Route::post('/login/mfa', 'mfa');
 });
