@@ -54,6 +54,13 @@ class LoginController extends BaseController
         }
     }
 
+    /**
+     * mfa驗證
+     *
+     * @param MFARequest $request
+     * @return JsonResponse
+     * @author ZhiYong
+     */
     public function mfa(MFARequest $request): JsonResponse
     {
         $post = $request->validated();

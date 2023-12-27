@@ -2,7 +2,9 @@
 
 namespace App\Exceptions;
 
+use App\Repositories\SystemErrorLogRepository;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -26,5 +28,26 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    public function report(Throwable $e)
+    {
+        $e = $this->mapException($e);
+        // 將錯誤訊息寫入資料庫
+        $this->errorLog($e, request());
+        parent::report($e);
+    }
+
+    private function errorLog(Throwable $e, $request): void
+    {
+        $payload = [
+            'method'        => $request->method(),
+            'ip'            => $request->ip(),
+            'api'           => $request->path(),
+            'request'       => $request->getContent(),
+            'errorMessage'  => $e->getMessage(),
+            'errorLine'     => $e->getLine()
+        ];
+        app(SystemErrorLogRepository::class)->errorLogRecoed($payload);
     }
 }

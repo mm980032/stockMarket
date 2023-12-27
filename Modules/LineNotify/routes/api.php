@@ -15,7 +15,8 @@ use Modules\LineNotify\app\Http\Controllers\LineNotifyController;
     |
 */
 
-Route::prefix('/lineNotify')->group(function () {
-    // 新增Line推播類型
-    Route::post('',[LineNotifyController::class, 'createLineNotifyType']);
+Route::controller(LineNotifyController::class)->prefix('/lineNotify')->group(function(){
+     // 新增Line推播
+     Route::post('', 'createLineNotify');
 });
+

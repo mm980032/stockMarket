@@ -6,6 +6,7 @@ use App\Http\Controllers\BaseController;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
+use Modules\LineNotify\app\Http\Requests\CreateLineNotify;
 use Modules\LineNotify\Services\LineNotifyService;
 
 class LineNotifyController extends BaseController
@@ -21,11 +22,11 @@ class LineNotifyController extends BaseController
      * @return void
      * @author ZhiYong
      */
-    public function createLineNotifyType(Request $request)
+    public function createLineNotify(CreateLineNotify $request)
     {
         $post = $request->all();
         try {
-            $this->service->createLineNotifyType($post);
+            $this->service->createLineNotify($post);
             return $this->returnSuccessMsg([], "成功新增");
         } catch (Exception $e) {
            return $this->returnErrorMsg('提示', $e->getMessage());

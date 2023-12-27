@@ -15,13 +15,13 @@ class LineNotifyRepository extends BaseRepository{
     }
 
     /**
-     * 新增line推播類型
+     * 新增line推播
      *
      * @param array $payload
      * @return void
      * @author ZhiYong
      */
-    public function createLineNotifyType(array $payload){
+    public function createLineNotify(array $payload){
         $this->model->insert($payload);
     }
 }

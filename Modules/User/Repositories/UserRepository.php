@@ -41,9 +41,9 @@ class UserRepository extends BaseRepository {
         $model = $this->model;
         return $model
                 ->select('*')
-                ->where('account', $account)
-                ->where('password', $password)
-                ->where('isDeleted', 0)
+                ->whereAccount($account)
+                ->wherePassword($password)
+                ->whereIsdeleted(0)
                 ->first();
     }
 
