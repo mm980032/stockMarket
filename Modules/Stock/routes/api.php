@@ -16,13 +16,21 @@ use Modules\Stock\app\Http\Controllers\StockController;
 */
 
 Route::controller(StockController::class)->prefix('stock')->group(function(){
+
+    // 選項
+    Route::prefix('/options')->group(function () {
+        Route::get('/all', 'allStockOption');
+    });
+
     // 基礎建置
     Route::get('/build-based', 'buildBasedInformation');
-    // 新增關注
-    Route::post('/', 'createFocuseStock');
-    // 推薦購買(測試用)
-    Route::get('/remmo-buy','recommendBuy');
-    // 關注自己購買推播(測試用)
-    Route::get('/own-buy','ownBuy');
+
+    Route::prefix('/options/focuse')->group(function () {
+
+        // 清單
+        Route::get('/', 'listFocuseStock');
+        // 新增關注
+        Route::post('/', 'createFocuseStock');
+    });
 });
 

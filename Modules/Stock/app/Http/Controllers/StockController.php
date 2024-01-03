@@ -19,6 +19,21 @@ class StockController extends BaseController
     ){}
 
     /**
+     * 所有股票選項
+     *
+     * @return JsonResponse
+     * @author ZhiYong
+     */
+    public function allStockOption(): JsonResponse{
+        try {
+            $data = $this->service->allStockOption();
+            return $this->returnSuccessMsg($data);
+        } catch (\Throwable $th) {
+            return $this->returnErrorMsg('失敗，原因：'. $th->getMessage());
+        }
+    }
+
+    /**
      * 建立基礎資訊
      *
      * @return JsonResponse
@@ -51,30 +66,15 @@ class StockController extends BaseController
     }
 
     /**
-     * 推薦購買通知
+     * 關注股票清單
      *
-     * @return JsonResponse
+     * @return void
      * @author ZhiYong
      */
-    public function recommendBuy() : JsonResponse {
+    public function listFocuseStock(){
         try {
-            $this->service->recommendBuy();
-            return $this->returnSuccessMsg();
-        } catch (Exception $e) {
-            return $this->returnErrorMsg('提示', $e->getMessage());
-        }
-    }
-
-    /**
-     * 關注自己購買推播
-     *
-     * @return JsonResponse
-     * @author ZhiYong
-     */
-    public function ownBuy() : JsonResponse {
-        try {
-            $this->service->ownBuy();
-            return $this->returnSuccessMsg();
+            $data = $this->focusService->list();
+            return $this->returnSuccessMsg($data);
         } catch (Exception $e) {
             return $this->returnErrorMsg('提示', $e->getMessage());
         }

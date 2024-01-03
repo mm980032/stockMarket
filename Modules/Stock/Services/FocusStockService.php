@@ -16,6 +16,11 @@ class FocusStockService{
 
     ){}
 
+    public function list(): array
+    {
+
+    }
+
     /**
      * 建立關注
      *

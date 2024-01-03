@@ -30,14 +30,16 @@ class FocusStockRepository extends BaseRepository
     /**
      * 取得關注股票
      *
-     * @param string $userID
+     * @param string $method
      * @return Collection
      * @author ZhiYong
      */
-    public function selectAllFocusStockByUserID(string $userID) : Collection
+    public function selectAllFocusStock(string $method = 'remo') : Collection
     {
         return $this->model
-            ->where('method', $userID)
+            ->select(['lineAuthCode', 'stockCode', 'name'])
+            ->where('method', $method)
+            ->where('toggle', 1)
             ->get();
     }
 }

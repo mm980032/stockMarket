@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Modules\Schedule\Services\ScheduleService;
 use Modules\Stock\Services\StockService;
 
 class Kernel extends ConsoleKernel
@@ -14,11 +15,6 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // php artisan schedule:work
-        // $schedule->call(function () {
-        //     $service = app()->make(StockMarketService::class);
-        //     $service->updateBaseStockInfo();
-        // })->dailyAt('14:00')->weekdays(); // 請替換為您希望的時間
-
         // 推薦購買排程
         // $schedule->call(function () {
         //     $service = app()->make(StockMarketService::class);
@@ -27,7 +23,7 @@ class Kernel extends ConsoleKernel
 
         // 關注價格
         $schedule->call(function () {
-            $service = app()->make(StockService::class);
+            $service = app()->make(ScheduleService::class);
             $service->ownBuy();
         })->everyFiveMinutes()->between('9:00', '13:30')->weekdays(); // 請替換為您希望的時間
     }

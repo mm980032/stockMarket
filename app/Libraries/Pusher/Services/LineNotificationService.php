@@ -23,16 +23,15 @@ class LineNotificationService{
      * @return void
      * @author ZhiYong
      */
-    public function sendNotification(string $msg, string $type = 'remmo') : string
+    public function sendNotification(string $msg, string $authCode) : string
     {
         $headers = array(
             'Content-Type: multipart/form-data',
-            'Authorization: Bearer ' . $this->token[$type]
+            'Authorization: Bearer ' . $authCode
         );
         $data = [
             'message' => $msg
         ];
-
         $result = curl('POST', $this->curlUrl, $headers, $data);
         if($result['httpCode'] != 200){
             return json_decode($result['content'])->message;

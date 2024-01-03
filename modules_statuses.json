@@ -3,5 +3,6 @@
     "Commands": true,
     "Stock": true,
     "Login": true,
-    "User": true
+    "User": true,
+    "Schedule": true
 }
