@@ -58,7 +58,7 @@ class UserTokenRepository extends BaseRepository {
     {
         $model = $this->model;
         return $model
-                ->select('userID')
+                ->select(['userID', 'isMFA'])
                 ->where('token', $toekn)
                 ->where('isLogOut', 0)
                 ->whereNull('logOutTime')

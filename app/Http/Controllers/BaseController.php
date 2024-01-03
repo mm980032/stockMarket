@@ -18,6 +18,7 @@ class BaseController extends Controller
      */
     public function returnSuccessMsg($data = [], $title = '提示', $msg = '成功') : JsonResponse {
         $result = [
+            'status' => 1,
             'title' => $title,
             'msg' => $msg
         ];
@@ -36,6 +37,7 @@ class BaseController extends Controller
      */
     public function returnErrorMsg($title = '提示', $msg = '失敗') : JsonResponse {
         $result = [
+            'status' => 0,
             'title' => $title,
             'msg' => $msg
         ];

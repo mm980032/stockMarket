@@ -12,4 +12,8 @@ class UserToken extends baseModel
     use HasFactory;
 
     public $table = 'UserToken';
+
+    public function user(){
+        return $this->belongsTo(user::class, 'userID', 'userID')->where('isDeleted', 0);
+    }
 }

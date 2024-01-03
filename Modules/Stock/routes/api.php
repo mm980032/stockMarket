@@ -15,7 +15,7 @@ use Modules\Stock\app\Http\Controllers\StockController;
     |
 */
 
-Route::controller(StockController::class)->prefix('stock')->group(function(){
+Route::controller(StockController::class)->middleware('authToken')->prefix('stock')->group(function(){
 
     // 選項
     Route::prefix('/options')->group(function () {
