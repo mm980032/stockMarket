@@ -112,15 +112,13 @@ class ScheduleService{
         foreach ($focus as $key => $item) {
             // 股票資訊
             $data = $this->fugleService->getStockQuoteDeatil($item['stockCode']);
-            // 推播群組
-            $lineAuth[] = $authCode[$key];
-            $msg[] = "日期：" . date('Y-m-d H:i:s') ."\n".
+            $msg[$authCode[$key]] = "日期：" . date('Y-m-d H:i:s') ."\n".
             "個股名稱：". $data['name']. "(" . $data['symbol'] .")"."\n".
             "〖當前股價〗". $data['lastPrice']. "\n". $data['change'] ." (" . $data['changePercent'] ."%) " ."\n";
         }
         if(!empty($msg)){
-            foreach ($msg as $key => $item) {
-                $this->lineNotify->sendNotification($item, $lineAuth[$key]);
+            foreach ($msg as $authCode => $item) {
+                $this->lineNotify->sendNotification($item, $authCode);
             }
         }
     }

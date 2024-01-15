@@ -66,6 +66,7 @@ class AuthToken
         $clientVO = app('clientVO');
         $clientVO->token = $token;
         $clientVO->clientInfo = $user->toArray();
+        $clientVO->userID = $user->userID;
         return $next($request);
 
 

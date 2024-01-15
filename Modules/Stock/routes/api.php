@@ -25,6 +25,9 @@ Route::controller(StockController::class)->middleware('authToken')->prefix('stoc
     // 基礎建置
     Route::get('/build-based', 'buildBasedInformation');
 
+    // 關注清單
+    Route::get('/focus', 'listFocuseStock');
+
     Route::prefix('/options/focuse')->group(function () {
 
         // 清單

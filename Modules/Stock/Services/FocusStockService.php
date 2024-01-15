@@ -16,9 +16,22 @@ class FocusStockService{
 
     ){}
 
+    /**
+     * 關注股票清單
+     *
+     * @return array
+     * @author ZhiYong
+     */
     public function list(): array
     {
-
+        // 當前用戶ID
+        $userID = app('clientVO')->userID;
+        try {
+            $search = $this->focusStockRepo->selectAllData([['userID', $userID]]);
+            return $search->toArray();
+        } catch (\Exception $e) {
+            throw new Exception($e->getMessage());
+        }
     }
 
     /**
@@ -39,7 +52,8 @@ class FocusStockService{
                 }
             );
             // 當前關注資訊
-            $focus = $this->focusStockRepo->selectAllData([['method', $post['method']]]);
+            $post['userID'] = app('clientVO')->userID;
+            $focus = $this->focusStockRepo->selectAllData([['userID', $post['userID']]]);
             $this->createFocus($focus, $stocks, $post);
             $this->deleteFocus($focus, $post);
             DB::commit();
@@ -66,6 +80,8 @@ class FocusStockService{
             $info = $stocks->where('stockCode', $itme)->first();
             $create[] = [
                 'focusID'       => $this->focusStockRepo->createUniqueID(),
+                'userID'        => $post['userID'],
+                'lineAuthCode'  => $post['lineAuthCode'],
                 'method'        => $post['method'],
                 'stockCode'     => $info->stockCode,
                 'name'          => $info->name,

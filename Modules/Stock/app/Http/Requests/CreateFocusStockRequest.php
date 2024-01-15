@@ -14,7 +14,8 @@ class CreateFocusStockRequest extends BaseRequest
     {
         return [
             'method' => 'required|in:own,remmo',
-            'stockCode' => 'nullable|array'
+            'stockCode' => 'nullable|array',
+            'lineAuthCode' => 'required'
         ];
     }
 
@@ -31,7 +32,8 @@ class CreateFocusStockRequest extends BaseRequest
         return [
             'method.required' => '推播類型必填',
             'method.in' => '推播類型錯誤',
-            'stockCode.array' => '關注代碼類型錯誤'
+            'stockCode.array' => '關注代碼類型錯誤',
+            'lineAuthCode.required' => '推播群組必填'
         ];
     }
 }
