@@ -20,7 +20,7 @@ class BaseController extends Controller
         $result = [
             'status' => 1,
             'title' => $title,
-            'msg' => $msg
+            'message' => $msg
         ];
         if(!empty($data)) $result['data'] = $data;
 
@@ -39,7 +39,7 @@ class BaseController extends Controller
         $result = [
             'status' => 0,
             'title' => $title,
-            'msg' => $msg
+            'message' => $msg
         ];
         return response()->json($result);
     }

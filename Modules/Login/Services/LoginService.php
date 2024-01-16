@@ -55,27 +55,6 @@ class LoginService{
     }
 
     /**
-     * 註冊帳號
-     *
-     * @param array $post
-     * @return void
-     * @author ZhiYong
-     */
-    public function register(array $post){
-        list($secret, $qrCodeUrl) = $this->google2FA->generateGoogle2FAInfo('Side-Project', $post['email']);
-        $payload = [
-            'userID' => $this->userRepo->createUniqueID(),
-            'name' => $post['name'],
-            'email' => $post['email'],
-            'account' => $post['account'],
-            'password' => $post['password'],
-            'googleAuthCode' => $secret,
-            'googleAuthQrcodeUrl' => $qrCodeUrl,
-        ];
-        $this->userRepo->createUser($payload);
-    }
-
-    /**
      * 登入
      *
      * @param Model $post

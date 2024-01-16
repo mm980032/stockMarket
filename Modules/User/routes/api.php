@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Routing\RouteRegistrar;
 use Illuminate\Support\Facades\Route;
+use Modules\User\app\Http\Controllers\UserController;
 
 /*
     |--------------------------------------------------------------------------
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Route;
     |
 */
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->name('api.')->group(function () {
-    Route::get('user', fn (Request $request) => $request->user())->name('user');
+Route::controller(UserController::class)->group(function(){
+    // 註冊帳號
+    Route::post('/register', 'register');
 });
