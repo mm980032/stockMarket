@@ -18,5 +18,5 @@ use Modules\User\app\Http\Controllers\UserController;
 
 Route::controller(UserController::class)->group(function(){
     // 註冊帳號
-    Route::post('/register', 'register');
+    Route::post('/register', 'userRegister');
 });

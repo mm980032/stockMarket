@@ -27,12 +27,12 @@ class UserController extends BaseController
      * @return JsonResponse
      * @author ZhiYong
      */
-    public function register(RegisterUserRequest $request): JsonResponse
+    public function userRegister(RegisterUserRequest $request): JsonResponse
     {
         $post = $request->validated();
         try {
             $this->valid->checkUserAccountExist($post['account']);
-            $this->service->register($post);
+            $this->service->userRegister($post);
             return $this->returnSuccessMsg();
         } catch (\Throwable $th) {
             return $this->returnErrorMsg('失敗，原因：'. $th->getMessage());

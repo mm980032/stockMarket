@@ -19,7 +19,7 @@ class UserService
      * @return void
      * @author ZhiYong
      */
-    public function register(array $post){
+    public function userRegister(array $post){
         list($secret, $qrCodeUrl) = $this->google2FA->generateGoogle2FAInfo('Side-Project', $post['email']);
         $payload = [
             'userID' => $this->userRepo->createUniqueID(),
