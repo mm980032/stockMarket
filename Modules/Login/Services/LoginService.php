@@ -24,7 +24,7 @@ class LoginService{
      */
     public function getUser(array $post) : Model
     {
-        $user = $this->userRepo->selectUserByAccount($post['account'], $post['password']);
+        $user = $this->userRepo->selectUserByAccount($post['account']);
         if(empty($user)){
             throw new \Exception('無此用戶');
         }

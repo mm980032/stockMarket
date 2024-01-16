@@ -32,17 +32,15 @@ class UserRepository extends BaseRepository {
      * 查詢用戶(利用帳號)
      *
      * @param string $account
-     * @param string $password
      * @return Model|null
      * @author ZhiYong
      */
-    public function selectUserByAccount(string $account, string $password): ?Model
+    public function selectUserByAccount(string $account): ?Model
     {
         $model = $this->model;
         return $model
                 ->select('*')
                 ->whereAccount($account)
-                ->wherePassword($password)
                 ->whereIsdeleted(0)
                 ->first();
     }

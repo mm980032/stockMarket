@@ -16,7 +16,7 @@ class BaseController extends Controller
      * @return JsonResponse
      * @author ZhiYong
      */
-    public function returnSuccessMsg($data = [], $title = '提示', $msg = '成功') : JsonResponse {
+    public function returnSuccessMsg($data = [], $msg = '成功', $title = '提示') : JsonResponse {
         $result = [
             'status' => 1,
             'title' => $title,
@@ -35,7 +35,7 @@ class BaseController extends Controller
      * @return JsonResponse
      * @author ZhiYong
      */
-    public function returnErrorMsg($title = '提示', $msg = '失敗') : JsonResponse {
+    public function returnErrorMsg($msg = '失敗', $title = '提示') : JsonResponse {
         $result = [
             'status' => 0,
             'title' => $title,

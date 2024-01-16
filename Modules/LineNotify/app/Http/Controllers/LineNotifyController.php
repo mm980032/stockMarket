@@ -27,9 +27,9 @@ class LineNotifyController extends BaseController
         $post = $request->all();
         try {
             $this->service->createLineNotify($post);
-            return $this->returnSuccessMsg([], "成功新增");
+            return $this->returnSuccessMsg();
         } catch (Exception $e) {
-           return $this->returnErrorMsg('提示', $e->getMessage());
+           return $this->returnErrorMsg($e->getMessage());
         }
     }
 }

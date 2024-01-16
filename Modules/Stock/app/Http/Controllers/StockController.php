@@ -61,7 +61,7 @@ class StockController extends BaseController
             $this->focusService->createFocusStock($post);
             return $this->returnSuccessMsg();
         } catch (Exception $e) {
-            return $this->returnErrorMsg('提示', $e->getMessage());
+            return $this->returnErrorMsg($e->getMessage());
         }
     }
 
@@ -76,7 +76,7 @@ class StockController extends BaseController
             $data = $this->focusService->list();
             return $this->returnSuccessMsg($data);
         } catch (Exception $e) {
-            return $this->returnErrorMsg('提示', $e->getMessage());
+            return $this->returnErrorMsg($e->getMessage());
         }
     }
 }

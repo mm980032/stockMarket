@@ -9,6 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Modules\User\app\Http\Requests\RegisterUserRequest;
+use Modules\User\app\Libraries\UserLibrary;
+use Modules\User\app\Validator\UserValidator;
 use Modules\User\Services\UserService;
 
 class UserController extends BaseController
@@ -16,6 +18,7 @@ class UserController extends BaseController
 
     public function __construct(
         private UserService $service,
+        private UserValidator $valid
     ){}
 
     /**
@@ -28,6 +31,7 @@ class UserController extends BaseController
     {
         $post = $request->validated();
         try {
+            $this->valid->checkUserAccountExist($post['account']);
             $this->service->register($post);
             return $this->returnSuccessMsg();
         } catch (\Throwable $th) {

@@ -31,7 +31,7 @@ class LoginController extends BaseController
             $data = $this->service->login($user);
             return $this->returnSuccessMsg($data);
         } catch (\Throwable $th) {
-            return $this->returnErrorMsg('提示', $th->getMessage());
+            return $this->returnErrorMsg($th->getMessage());
         }
     }
 
@@ -53,7 +53,7 @@ class LoginController extends BaseController
             $this->service->mfa($user, $post['mfa']);
             return $this->returnSuccessMsg();
         } catch (\Throwable $th) {
-            return $this->returnErrorMsg('提示', '失敗，原因：'. $th->getMessage());
+            return $this->returnErrorMsg('失敗，原因：'. $th->getMessage());
         }
     }
 }
