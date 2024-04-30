@@ -4,5 +4,6 @@
     "Stock": true,
     "Login": true,
     "User": true,
-    "Schedule": true
+    "Schedule": true,
+    "Line": true
 }
