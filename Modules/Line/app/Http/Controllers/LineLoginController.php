@@ -20,13 +20,14 @@ class LineLoginController extends Controller
         $parameters = [
             "grant_type" => "authorization_code",
             "code" => $code,
-            "redirect_uri" => "http://stockmarket.com/api/line/callback/token",
-            "client_id" => "2004719903",
-            "client_secret" => "d0a167499a849ecb55f8df8f4fbf424a"
+            "redirect_uri" => "http://stock-market.com/api/line/callback/token",
+            "client_id" => "",
+            "client_secret" => ""
         ];
         $response = Http::asForm()->withHeaders($header)->post(env("LINE_TOKEN_URL"), $parameters);
         // 確認是否為好友
-        // $statusResponse = $this->checkFriendshipStatus($response->json());
+        $statusResponse = $this->checkFriendshipStatus($response->json());
+        dd($statusResponse);
         // 取得用戶資料
         $data = $this->getLineUserInfo($response->json());
         var_dump($data);exit;
